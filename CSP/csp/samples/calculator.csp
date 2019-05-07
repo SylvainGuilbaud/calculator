@@ -1,0 +1,100 @@
+<html>
+<body>
+
+<head>
+<title>calculator</title>
+</head>
+<h1 align='center'>calculator</h1>
+<!-- This function is needed by the search button on the form -->
+<script language='javascript'>
+<!--
+function update(id)
+{
+     #server(..formLoad(id))#;
+     return true;
+}
+
+// -->
+</script>
+
+<!-- set the domain so error messages could be properly localized -->
+<csp:class DOMAIN='%CSPBind'>
+
+<!-- use CSP:OBJECT tag to create a reference to an instance of the class -->
+<csp:object name='objForm' classname='myapp.request' OBJID='#(%request.Get("OBJID"))#'>
+
+<!-- use csp:search tag to create a javascript function to invoke a search page -->
+<csp:search name='form_search' classname='myapp.request' where='%Id(),p1,operation,p2'
+options='predicates'>
+
+<form name='form' cspbind='objForm' cspjs='All' onsubmit='return form_validate();'>
+<center>
+<table cellpadding='3'>
+	<tr>
+		<td><b><div align='right'>p1:</div></b></td>
+		<td><input type='text' name='p1' cspbind='p1' size='10' value='100'></td>
+	</tr>
+	<tr>
+		<td><b><div align='right'>operation:</div></b></td>
+		<td><select name='operation' cspbind='operation' >
+		  <option value='+'>+</option>
+		  <option value='/'>/</option>
+		  <option value='*'>*</option>
+		  <option value='-'>-</option>
+		</select></td>
+	</tr>
+	<tr>
+		<td><b><div align='right'>p2:</div></b></td>
+		<td><input type='text' name='p2' cspbind='p2' size='10'></td>
+	</tr>
+	<tr>
+		<td>&nbsp;</td>
+		<td><input type='button' name='btnClear' value='#(%response.GetText("","%CSPSearch","ClearBtn","clear"))#' onclick='form_new();'>
+	<input type='button' name='btnCalcul' value='calculate' onclick='calcul();'>
+	<input type='button' name='btnSearch' value='#(%response.GetText("","%CSPSearch","SearchBtn","search"))#' onclick='form_search();'></td>
+	</tr>
+	<tr>
+		<td><b><div align='right'>result:</div></b></td>
+		<td><input type='text' name='result' size='10'></td>
+	</tr>
+</table>
+</center>
+</form>
+<script language="JavaScript" type="text/javascript">
+
+function calcul()
+{
+    // first do browser-side validation of zip code
+    var p1 = self.document.form.p1.value;
+    var p2 = self.document.form.p2.value;
+    var operation = self.document.form.operation.value;
+
+    if ((p2==='0') && (operation==='/')) {
+    	alert('division par zéro non autorisée');
+    }
+    else {
+    	#server(..sendCalcul(p1,operation,p2))#
+    }
+
+    return true;
+}
+
+</script>
+
+<script arguments="p1:%Integer,operation:%String,p2:%Integer" language="Cache" method="sendCalcul">
+
+   	set tSC=##class(Ens.Director).CreateBusinessService("calculator.service",.tService)
+	set request=##class(myapp.request).%New()
+	set request.p1=p1
+	set request.p2=p2
+	set request.operation=operation
+	set sc=tService.ProcessInput(request,.response)
+
+	if $IsObject(response) {
+		set result=response.result
+	}
+        &javascript< CSPPage.document.form.result.value = '#(result)#'; >
+    return
+</script>
+</body>
+</html>
